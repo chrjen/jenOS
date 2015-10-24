@@ -1,0 +1,6 @@
+gcc/
+tar/
+boot/
+
+*.o
+*.bin
