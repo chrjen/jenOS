@@ -8,6 +8,7 @@ LIBS:=-lgcc
 OBJS:=\
 boot.o \
 kernel.o \
+terminal.o
 
 all: jenOS.bin
 

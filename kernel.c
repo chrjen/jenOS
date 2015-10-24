@@ -2,101 +2,70 @@
 #include <stddef.h>
 #include <stdint.h>
 
-static const uint8_t COLOR_BLACK = 0;
-static const uint8_t COLOR_BLUE = 1;
-static const uint8_t COLOR_GREEN = 2;
-static const uint8_t COLOR_CYAN = 3;
-static const uint8_t COLOR_RED = 4;
-static const uint8_t COLOR_MAGENTA = 5;
-static const uint8_t COLOR_BROWN = 6;
-static const uint8_t COLOR_LIGHT_GREY = 7;
-static const uint8_t COLOR_DARK_GREY = 8;
-static const uint8_t COLOR_LIGHT_BLUE = 9;
-static const uint8_t COLOR_LIGHT_GREEN = 10;
-static const uint8_t COLOR_LIGHT_CYAN = 11;
-static const uint8_t COLOR_LIGHT_RED = 12;
-static const uint8_t COLOR_LIGHT_MAGENTA = 13;
-static const uint8_t COLOR_LIGHT_BROWN = 14;
-static const uint8_t COLOR_WHITE = 15;
+#include "terminal.h"
 
-uint8_t make_color(uint8_t fg, uint8_t bg)
+
+void sleep(int sleep)
 {
-	return fg | bg << 4;
-}
-
-uint16_t make_vgaentry(char c, uint8_t color)
-{
-	uint16_t c16 = c;
-	uint16_t color16 = color;
-	return c16 | color16 << 8;
-}
-
-size_t strlen(const char* str)
-{
-	size_t ret = 0;
-	while ( str[ret] != 0 )
-		ret++;
-	return ret;
-}
-
-static const size_t VGA_WIDTH = 80;
-static const size_t VGA_HEIGHT = 24;
-
-size_t terminal_row;
-size_t terminal_column;
-uint8_t terminal_color;
-uint16_t* terminal_buffer;
-
-void terminal_initialize()
-{
-	terminal_row = 0;
-	terminal_column = 0;
-	terminal_color = make_color(COLOR_LIGHT_GREY, COLOR_BLACK);
-	terminal_buffer = (uint16_t*) 0xB8000;
-	for ( size_t y = 0; y < VGA_HEIGHT; y++ )
-		for ( size_t x = 0; x < VGA_WIDTH; x++ )
-		{
-			const size_t index = y * VGA_WIDTH + x;
-			terminal_buffer[index] = make_vgaentry(' ', terminal_color);
-		}
-}
-
-void terminal_setcolor(uint8_t color)
-{
-	terminal_color = color;
-}
-
-void terminal_putentryat(char c, uint8_t color, size_t x, size_t y)
-{
-	const size_t index = y * VGA_WIDTH + x;
-	terminal_buffer[index] = make_vgaentry(c, color);
-}
-
-void terminal_putchar(char c)
-{
-	terminal_putentryat(c, terminal_color, terminal_column, terminal_row);
-	if ( ++terminal_column == VGA_WIDTH )
+	for (volatile long i = 0; i < 1000000 * sleep; i++)
 	{
-		terminal_column = 0;
-		if ( ++terminal_row == VGA_HEIGHT )
-		{
-			terminal_row = 0;
-		}
+		/* DO NOTHING */
 	}
 }
 
-void terminal_writestring(const char* data)
+static const char* digits = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+char* to_string(char str[], int num, int base)
 {
-	size_t datalen = strlen(data);
-	for ( size_t i = 0; i < datalen; i++ )
-		terminal_putchar(data[i]);
+	int i, rem, len = 0, n;
+
+	n = num;
+    do
+    {
+		len++;
+        n /= base;
+    } while (n != 0);
+    
+	for (i = 0; i < len; i++)
+    {
+        rem = num % base;
+        num = num / base;
+        str[len - (i + 1)] = digits[rem];
+    }
+    str[len] = '\0';
+	return str;
 }
+
 
 void kmain()
 {
 	terminal_initialize();
-	terminal_writestring("jenOS (c) v0.0.1!");
-	terminal_column = 0;
-	terminal_row++;
-	terminal_writestring("Hello World! :D");
+	terminal_writestring("jenOS (c) v0.0.2!\n");
+	terminal_setcolor(make_color(COLOR_LIGHT_RED, COLOR_BLACK));
+	terminal_writestring("Hello World! :D\n");
+	terminal_setcolor(make_color(COLOR_LIGHT_BLUE, COLOR_BLACK));
+
+	char num[64];
+	char c[2];
+	c[1] = '\n';
+	for (size_t i = 1; 1; i++)
+	{
+		if (i > 255)
+		{
+			i = 1;
+		}
+
+		terminal_writestring(to_string(num, terminal_row, 10));
+		terminal_writestring(": The value ");
+		terminal_writestring(to_string(num, i, 10));
+		terminal_writestring(" (0x");
+		terminal_writestring(to_string(num, i, 16));
+		terminal_writestring(") ");
+		terminal_writestring("is character ");
+		c[0] = i;
+		terminal_writestring(c);
+		terminal_push();
+		sleep(500);
+	}
+	terminal_push();
 }
