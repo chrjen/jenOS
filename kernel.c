@@ -40,7 +40,7 @@ char* to_string(char str[], int num, int base)
 void kmain()
 {
 	terminal_initialize();
-	terminal_writestring("jenOS (c) v0.0.2!\n");
+	terminal_writestring("jenOS (c) v0.0.3!\n");
 	terminal_setcolor(make_color(COLOR_LIGHT_RED, COLOR_BLACK));
 	terminal_writestring("Hello World! :D\n");
 	terminal_setcolor(make_color(COLOR_LIGHT_BLUE, COLOR_BLACK));

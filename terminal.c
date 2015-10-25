@@ -66,7 +66,14 @@ void terminal_putchar(char c)
 	if (c == '\n')
 	{
 		terminal_column = 0;
-		terminal_row+1 >= VGA_HEIGHT ? terminal_row = 0 : terminal_row++;
+		if (terminal_row+1 >= VGA_HEIGHT)
+		{
+			terminal_scroll();
+		}
+		else
+		{
+			terminal_row++;
+		}
 		return;
 	}
 
@@ -78,6 +85,23 @@ void terminal_putchar(char c)
 		{
 			terminal_row = 0;
 		}
+	}
+}
+
+void terminal_scroll()
+{
+	for (size_t y = 2; y < VGA_HEIGHT-1; y++)
+	{
+		for (size_t x = 0; x < VGA_WIDTH; x++)
+		{
+			terminal_buffer[y * VGA_WIDTH + x] = terminal_buffer[(y+1) * VGA_WIDTH + x];
+		}
+	}
+
+	/* Clears the new line before use.  */
+	for (size_t x = 0; x < VGA_WIDTH; x++)
+	{
+		terminal_buffer[(VGA_HEIGHT-1) * VGA_WIDTH + x] = make_vgaentry(' ', terminal_color);
 	}
 }
 
