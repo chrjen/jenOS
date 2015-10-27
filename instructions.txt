@@ -3,6 +3,7 @@ See the web-pages for more instructions.
 	- http://users-cs.au.dk/sortie/dopsys/osdev/
 
 Using self compiled gcc cross-compiler.
+	binutils-2.25
 	gcc-4.8.5
 	gmp-5.1.3
 	mpc-1.0.1
