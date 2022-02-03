@@ -23,10 +23,10 @@ static const uint8_t COLOR_WHITE = 15;
 static const size_t VGA_WIDTH = 80;
 static const size_t VGA_HEIGHT = 24;
 
-size_t terminal_row;
-size_t terminal_column;
-uint8_t terminal_color;
-uint16_t* terminal_ptr;
+extern size_t terminal_row;
+extern size_t terminal_column;
+extern uint8_t terminal_color;
+extern uint16_t* terminal_ptr;
 
 uint8_t make_color(uint8_t fg, uint8_t bg);
 uint16_t make_vgaentry(char c, uint8_t color);

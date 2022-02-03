@@ -3,16 +3,16 @@ See the web-pages for more instructions.
 	- http://users-cs.au.dk/sortie/dopsys/osdev/
 
 Using self compiled gcc cross-compiler.
-	binutils-2.25
-	gcc-4.8.5
-	gmp-5.1.3
-	mpc-1.0.1
-	mpfr-3.1.2
+	binutils-2.37
+	gcc-11.2.0
+	gmp-10.4.1
+	mpc-3.2.1
+	mpfr-6.1.0
 
 Target: i686-elf
 
 Tips:
 	- Make sure you have dev-packages installed.
-	- Have 'makeinfo' installed.
+	- Have 'makeinfo' or 'mtools' installed.
 	- Have 'xorriso' installed for grub.
 

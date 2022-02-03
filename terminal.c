@@ -14,6 +14,11 @@
 
 uint16_t terminal_buffer[TERMINAL_BUFFER_SIZE];
 
+size_t terminal_row;
+size_t terminal_column;
+uint8_t terminal_color;
+uint16_t* terminal_ptr;
+
 
 uint8_t make_color(uint8_t fg, uint8_t bg)
 {
