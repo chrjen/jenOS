@@ -1,6 +1,9 @@
+/.vscode/
+
 gcc/
 tar/
 boot/
 
 *.o
 *.bin
+*.iso
