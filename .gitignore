@@ -3,7 +3,12 @@
 gcc/
 tar/
 boot/
+build/
 
 *.o
 *.bin
+*.so
+*.efi
 *.iso
+*.img
+*.vmdk

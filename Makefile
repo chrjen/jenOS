@@ -1,21 +1,46 @@
-AS:=i686-elf-as
-CC:=i686-elf-gcc
+AS:=as
+LD:=ld
+CC:=gcc
+OBJCOPY:=objcopy
+NAME:=jenOS
 
-CFLAGS:=-ffreestanding -O2 -Wall -Wextra -nostdlib -nostartfiles -nodefaultlibs
+CFLAGS:=-I/usr/include/efi -fpic -ffreestanding -fno-stack-protector \
+        -fno-stack-check -fshort-wchar -mno-red-zone -maccumulate-outgoing-args
 CPPFLAGS:=
-LIBS:=-lgcc
+LDFLAGS:=-shared -Bsymbolic -L/usr/lib/ -T /usr/lib/elf_x86_64_efi.lds /usr/lib/crt0-efi-x86_64.o
+LIBS:=-lgnuefi -lefi
 
 OBJS:=\
-boot.o \
-kernel.o \
-terminal.o
+kmain.o
 
-all: jenOS.bin
+BUILDIR:=/tmp/jenos_build
 
-.PHONEY: all clean iso run-qemu
+# On Arch-Linux it's part of the 'edk2-ovmf' package
+BIOS?=/usr/share/edk2-ovmf/x64/OVMF.fd
 
-jenOS.bin: $(OBJS) linker.ld
-	$(CC) -T linker.ld -o $@ $(CFLAGS) $(OBJS) $(LIBS)
+all: $(NAME).bin
+
+.PHONEY: all clean run-qemu
+
+$(NAME).vmdk: $(NAME).img
+	qemu-img convert -O vmdk $(NAME).img $(NAME).vmdk
+
+$(NAME).img: $(NAME).efi
+	dd if=/dev/zero of=$(NAME).img bs=512 count=100000
+	mkfs.fat -F16 $(NAME).img
+	rm -rf $(BUILDIR)
+	mkdir $(BUILDIR)
+	sudo mount $$(sudo losetup -f --show $(NAME).img) $(BUILDIR)
+	sudo mkdir -p $(BUILDIR)/EFI/BOOT
+	sudo cp $(NAME).efi $(BUILDIR)/EFI/BOOT/BOOTX64.efi
+	sudo umount $(BUILDIR)
+	sudo losetup -D
+
+$(NAME).efi: $(NAME).so
+	$(OBJCOPY) -j .text -j .sdata -j .data -j .dynamic -j .dynsym  -j .rel -j .rela -j .rel.* -j .rela.* -j .reloc --target efi-app-x86_64 --subsystem=10 $(NAME).so $(NAME).efi
+
+$(NAME).so: $(OBJS)
+	$(LD) -o $@ $(LDFLAGS) $(OBJS) $(LIBS)
 
 %.o: %.c
 	$(CC) -c $< -o $@ -std=gnu99 $(CFLAGS) $(CPPFLAGS)
@@ -24,22 +49,14 @@ jenOS.bin: $(OBJS) linker.ld
 	$(AS) $< -o $@
 
 clean:
-	rm -rf isodir
-	rm -f jenOS.bin jenOS.iso $(OBJS)
+	rm -rf build
+	rm -f $(NAME).vmdk $(NAME).img $(NAME).efi $(NAME).so \
+	      $(NAME).bin $(NAME).iso $(OBJS)
 
-iso: jenOS.iso
 
-isodir isodir/boot isodir/boot/grub:
-	mkdir -p $@
-
-isodir/boot/jenOS.bin: jenOS.bin isodir/boot
-	cp $< $@
-
-isodir/boot/grub/grub.cfg: grub.cfg isodir/boot/grub
-	cp $< $@
-
-jenOS.iso: isodir/boot/jenOS.bin isodir/boot/grub/grub.cfg
-	grub-mkrescue -o $@ isodir
-
-run-qemu: jenOS.iso
-	qemu-system-i386 -cdrom jenOS.iso
+run-qemu: $(NAME).vmdk
+	qemu-system-x86_64 --bios $(BIOS) \
+	                   -net none \
+	                   -usb \
+	                   -drive if=none,id=usbstick,file=$(NAME).vmdk \
+	                   -device usb-storage,drive=usbstick
