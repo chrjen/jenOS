@@ -18,7 +18,7 @@ BUILDIR:=/tmp/jenos_build
 # On Arch-Linux it's part of the 'edk2-ovmf' package
 BIOS?=/usr/share/edk2-ovmf/x64/OVMF.fd
 
-all: $(NAME).bin
+all: $(NAME).vmdk
 
 .PHONEY: all clean run-qemu
 
